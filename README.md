@@ -2,7 +2,7 @@
 
 A small command-line application to **track and manage tasks** using a JSON file as storage.
 
-This project is inspired by the [roadmap.sh](https://roadmap.sh) project idea and is meant to practice:
+This project is inspired by the [roadmap.sh](https://roadmap.sh) project idea [task-tracker](https://roadmap.sh/projects/task-tracker) and is meant to practice:
 
 - Working with the filesystem
 - Handling command-line arguments
