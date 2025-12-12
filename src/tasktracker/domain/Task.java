@@ -7,7 +7,7 @@ public record Task(
         String description,
         TaskStatus status,
         LocalDateTime createdAt,
-        LocalDateTime updrtedAt
+        LocalDateTime updatedAt
 ) {
     public Task witthDescription(String description) {
         return new Task(id, description, status, createdAt, LocalDateTime.now());
