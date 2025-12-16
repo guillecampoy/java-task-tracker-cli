@@ -1,192 +1,148 @@
 # Java Task Tracker CLI
 
-A small command-line application to **track and manage tasks** using a JSON file as storage.
-
-This project is inspired by the [roadmap.sh](https://roadmap.sh) project idea [task-tracker](https://roadmap.sh/projects/task-tracker) and is meant to practice:
-
-- Working with the filesystem
-- Handling command-line arguments
-- Designing a simple domain model
-- Building a small but robust CLI tool in modern Java
+A tiny command-line application to **track and manage tasks** using only the Java Standard Library and a `tasks.json` file stored next to the executable.  
+It is inspired by the [roadmap.sh task tracker project](https://roadmap.sh/projects/task-tracker) and is meant to practice filesystem IO, command-line parsing, and lightweight domain modeling.
 
 ---
 
-## Features
+## Requirements
 
-The CLI allows you to:
-
-- Add new tasks ✨
-- Update and delete existing tasks
-- Mark tasks as:
-    - `todo`
-    - `in-progress`
-    - `done`
-- List:
-    - All tasks
-    - Only done tasks
-    - Only not done tasks (`todo`)
-    - Only in-progress tasks
-
-Tasks are stored in a **`tasks.json`** file created in the current working directory.  
-No external libraries or frameworks are used.
+- Java 17 or newer (tested with Java 21)
+- No external build tools and no third-party libraries
 
 ---
 
-## Tech stack
+## Quick start
 
-- **Language:** Java (recommended: Java 21, minimum: Java 17)
-- **Storage:** Local JSON file (`tasks.json`)
-- **Dependencies:** None (no external libraries)
-
----
-
-## Usage
-
-After building the project into a JAR file, you can run:
+Compile everything straight from the `src` folder and place the class files under `out`:
 
 ```bash
-java -jar java-task-tracker-cli.jar <command> [arguments...]
-```
----
-
-## Examples
-
-### Add a new task
-```bash
-java -jar java-task-tracker-cli.jar add "Buy groceries"
+mkdir -p out
+javac -d out $(find src -name "*.java")
 ```
 
-### List all tasks
+Run the CLI by pointing `java` to the `tasktracker.Main` entry point:
+
 ```bash
+java -cp out tasktracker.Main <command> [arguments...]
+```
+
+To ship a single executable archive you can also create a JAR with nothing but the JDK tooling:
+
+```bash
+jar --create --file java-task-tracker-cli.jar -C out .
 java -jar java-task-tracker-cli.jar list
 ```
 
-### Update a task description
+When the application runs it creates/updates `tasks.json` in the current working directory.
+
+---
+
+## Command reference
+
+| Command | Description | Example |
+| --- | --- | --- |
+| `add "<description>"` | Create a new task with status `todo`. | `java -cp out tasktracker.Main add "Buy groceries"` |
+| `update <id> "<new description>"` | Replace the description of a task. | `... update 1 "Buy groceries and coffee"` |
+| `delete <id>` | Remove a task permanently. | `... delete 3` |
+| `mark-in-progress <id>` | Move a task into `in-progress`. | `... mark-in-progress 1` |
+| `mark-done <id>` | Mark the task as `done`. | `... mark-done 2` |
+| `list [todo|in-progress|done]` | Show every task or filter by status. | `... list in-progress` |
+
+All inputs are positional arguments (no flags such as `--name`).
+
+---
+
+## Example workflow
+
 ```bash
-java -jar java-task-tracker-cli.jar update 1 "Buy groceries and coffee"
+java -cp out tasktracker.Main add "Study Java 21"
+java -cp out tasktracker.Main add "Write README"
+java -cp out tasktracker.Main mark-in-progress 2
+java -cp out tasktracker.Main list
+java -cp out tasktracker.Main mark-done 1
+java -cp out tasktracker.Main delete 2
 ```
 
-### Mark a task as in progress
-```bash
-java -jar java-task-tracker-cli.jar mark-in-progress 1
+Typical CLI output:
+
+```
+Created task with id 1
+Created task with id 2
+Task 2 is now IN_PROGRESS
+[1] (TODO) Study Java 21
+[2] (IN_PROGRESS) Write README
+Task 1 is now DONE
+Deleted task 2
 ```
 
-### Mark a task as done
-```bash
-java -jar java-task-tracker-cli.jar mark-done 1
-```
-### Delete a task
-```bash
-java -jar java-task-tracker-cli.jar delete 1
-```
-## Supported commands
+---
 
->All inputs are positional arguments (no flags like --name).
+## Data file structure
 
-### 1. add
+`tasks.json` is created automatically if it is missing. Every task persists the status and timestamps so that the CLI can recover the history later.
 
-Add a new task with default status todo.
-```bash
-java -jar java-task-tracker-cli.jar add "<description>"
-```
-### 2. update
-
-Update the description of an existing task.
-```bash
-java -jar java-task-tracker-cli.jar update <id> "<new description>"
-```
-### 3. delete
-
-Delete a task by its ID.
-```bash
-java -jar java-task-tracker-cli.jar delete <id>
-```
-### 4. mark-in-progress
-
-Mark a task as in-progress.
-```bash
-java -jar java-task-tracker-cli.jar mark-in-progress <id>
-```
-### 5. mark-done
-
-Mark a task as done.
-```bash
-java -jar java-task-tracker-cli.jar mark-done <id>
-```
-### 6. list
-
-List tasks. When no filter is provided, all tasks are listed.
-
-- All tasks
-```bash
-java -jar java-task-tracker-cli.jar list
-```
-- Only todo tasks
-```bash
-java -jar java-task-tracker-cli.jar list todo
-```
-- Only in-progress tasks
-```bash
-java -jar java-task-tracker-cli.jar list in-progress
-```
-- Only done tasks
-```bash
-java -jar java-task-tracker-cli.jar list done
-```
-
-## Formato del archivo tasks.json
-
-The tasks.json file is automatically created in the current directory if it does not exist.
-
-Example:
 ```json
 [
-{
-"id": 1,
-"description": "Study Java 21",
-"status": "todo",
-"createdAt": "2025-12-10T10:15:30",
-"updatedAt": "2025-12-10T10:15:30"
-},
-{
-"id": 2,
-"description": "Write README for the project",
-"status": "in-progress",
-"createdAt": "2025-12-10T11:00:00",
-"updatedAt": "2025-12-10T11:05:00"
-}
+  {
+    "id": 1,
+    "description": "Study Java 21",
+    "status": "TODO",
+    "createdAt": "2025-12-10T10:15:30",
+    "updatedAt": "2025-12-10T10:15:30"
+  },
+  {
+    "id": 2,
+    "description": "Write README for the project",
+    "status": "IN_PROGRESS",
+    "createdAt": "2025-12-10T11:00:00",
+    "updatedAt": "2025-12-10T11:05:00"
+  }
 ]
 ```
 
-### Valid statuses:
-- todo
-- in-progress
-- done
+Valid statuses: `TODO`, `IN_PROGRESS`, `DONE`.
+
+---
 
 ## Error handling
 
-The CLI should handle errors gracefully, for example:
+All user-facing errors are printed as `[ERROR] <message>` and the CLI keeps running:
 
-- Unknown commands
-- Missing required arguments
-- Non-existing task IDs
-- Invalid or corrupted tasks.json file
-- Read/write permission issues
+- Unknown command or invalid status filter
+- Missing or malformed arguments (e.g., forgetting the task id)
+- Non-existing task ids
+- Problems reading/writing `tasks.json` (permission denied, corrupt JSON, etc.)
 
-### Example of an error message:
+Example:
+
 ```bash
 [ERROR] Task with id 42 not found.
 ```
 
+---
+
+## Testing
+
+The repository ships with a tiny self-contained test (`tasktracker.TaskServiceTest`) that exercises the domain logic without any external libraries. Compile it together with the rest of the sources (see *Quick start*) and run:
+
+```bash
+java -cp out tasktracker.TaskServiceTest
+```
+
+It will exit with a non-zero code if an assertion fails and will print `All TaskService tests passed.` on success.
+
+---
+
 ## Possible improvements
 
-Some ideas for future extensions:
-- Change task status via a dedicated command: update-status <id> <status>
-- Add priorities (e.g. low, medium, high)
-- Sort tasks by creation date, status, or priority
-- Add unit tests for the domain layer (task management logic)
+- Add more commands (e.g., `update-status <id> <status>` or task priorities)
+- Sort tasks by creation date, priority, or status when listing them
+- Support human-friendly timestamps in the CLI output
+- Extend the test suite to cover the CLI layer and file persistence
+
+---
 
 ## License
 
->This project is intended for learning and personal use.
-Feel free to fork it and adapt it to your own needs.
+This project is intended for learning and personal use—fork it and adapt it to your needs.
